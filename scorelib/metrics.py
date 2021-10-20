@@ -480,6 +480,9 @@ def der(ref_turns, sys_turns, collar=0.0, ignore_overlaps=False, uem=None):
     with np.errstate(invalid='ignore', divide='ignore'):
         error_times = miss_speaker_times + fa_speaker_times + error_speaker_times
         ders = error_times / scored_speaker_times
+        miss_rate = miss_speaker_times / scored_speaker_times * 100.
+        false_alarm = fa_speaker_times / scored_speaker_times * 100.
+        confussion = error_speaker_times / scored_speaker_times * 100.
     ders[np.isnan(ders)] = 0 # Numerator and denominator both 0.
     ders[np.isinf(ders)] = 1 # Numerator > 0, but denominator = 0.
     ders *= 100. # Convert to percent.
@@ -487,6 +490,7 @@ def der(ref_turns, sys_turns, collar=0.0, ignore_overlaps=False, uem=None):
     # Reconcile with UEM, keeping in mind that in the edge case where no
     # reference turns are observed for a file, md-eval doesn't report results
     # for said file.
+    ders = np.concatenate([[ders], [miss_rate], [false_alarm], [confussion]], axis=0).T
     file_to_der_base = dict(zip(file_ids, ders))
     file_to_der = {}
     for file_id in uem:
